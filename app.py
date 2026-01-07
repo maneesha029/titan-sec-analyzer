@@ -1,52 +1,89 @@
+# ================================
+# Titan SEC Analyzer 2026
+# ================================
+
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import streamlit as st
 from core.engine import fetch_company_data, get_financial_trends
+from utils.risk import extract_risk_factors
 
+# ================================
+# SESSION STATE INITIALIZATION
+# ================================
+if "company" not in st.session_state:
+    st.session_state.company = None
+
+if "filing" not in st.session_state:
+    st.session_state.filing = None
+
+if "revenue_data" not in st.session_state:
+    st.session_state.revenue_data = None
+
+# ================================
+# PAGE CONFIG & TITLE
+# ================================
 st.set_page_config(page_title="Titan SEC 2026", layout="wide")
-
 st.title("🔱 Titan SEC Analyzer")
 st.caption("Live Forensic Analysis of SEC Filings")
 
-# Sidebar for Input
-ticker = st.sidebar.text_input("Enter Ticker (e.g., NVDA, TSLA, AAPL)", value="NVDA").upper()
+# ================================
+# SIDEBAR INPUT
+# ================================
+ticker = st.sidebar.text_input(
+    "Enter Ticker (e.g., NVDA, TSLA, AAPL)", value="NVDA"
+).upper()
 
+# ================================
+# BUTTON: FETCH DATA
+# ================================
 if st.sidebar.button("Run Intelligence Audit"):
     with st.spinner(f"Accessing EDGAR Servers for {ticker}..."):
-        company, filing = fetch_company_data(ticker)
-        
-        if company:
-            st.header(f"{company.name} Analysis")
-            
-            # Display Key Metadata
-            col1, col2, col3 = st.columns(3)
-            col1.metric("CIK", company.cik)
-            col2.metric("Industry", company.industry)
-            col3.write(f"**Latest Filing:** {filing.filing_date}")
+        # Fetch company and latest filing
+        st.session_state.company, st.session_state.filing = fetch_company_data(ticker)
+        # Fetch revenue / financial trends
+        st.session_state.revenue_data = get_financial_trends(ticker)
 
-            # Display Revenue Chart
-            st.subheader("Revenue Performance (Live XBRL)")
-            revenue_data = get_financial_trends(ticker)
-            if not revenue_data.empty:
-                #st.line_chart(revenue_data.set_index('end')['val'])
-                st.write(revenue_data)
-                st.write(revenue_data.columns)
+# ================================
+# LOCAL VARIABLES (SAFE TO USE)
+# ================================
+company = st.session_state.company
+filing = st.session_state.filing
+revenue_data = st.session_state.revenue_data
 
-        else:
-            st.error("Company not found. Please check the Ticker.")
+# ================================
+# COMPANY & FINANCIAL DISPLAY
+# ================================
+if company:
+    st.header(f"{company.name} Analysis")
 
-# ... existing imports ...
-revenue_data = get_financial_trends(ticker)
-st.write(revenue_data.columns)
-st.write("DEBUG: revenue_data")
-st.write(revenue_data)
+    # Display Key Metadata
+    col1, col2, col3 = st.columns(3)
+    col1.metric("CIK", company.cik)
+    col2.metric("Industry", company.industry)
+    col3.write(f"**Latest Filing:** {filing.filing_date}")
 
-st.write("DEBUG: columns")
-st.write(list(revenue_data.columns))
+    # Display Revenue Chart
+    st.subheader("Revenue Performance (Live XBRL)")
+    if revenue_data is not None and not revenue_data.empty:
+        st.dataframe(revenue_data)
+    else:
+        st.warning("Could not extract standardized financial data for this ticker.")
 
-
-
-if not revenue_data.empty:
-    st.subheader("📈 Revenue Growth (Standardized)")
-    # Streamlit can display this new dataframe format directly
-    st.dataframe(revenue_data)
 else:
-    st.warning("Could not extract standardized financial data for this ticker.")
+    st.info("Run Intelligence Audit to load company data.")
+
+# ================================
+# RISK ANALYSIS SECTION (Item 1A)
+# ================================
+st.markdown("---")
+st.subheader("⚠️ Item 1A: Risk Factors (Raw Intelligence)")
+
+if filing:
+    risk_text = extract_risk_factors(filing)
+    with st.expander("Show Risk Factor text from 10-K"):
+        st.write(risk_text)
+else:
+    st.info("Run Intelligence Audit to load Risk Factors.")

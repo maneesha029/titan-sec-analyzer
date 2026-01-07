@@ -1,4 +1,4 @@
-# 🔱 Titan SEC Analyzer 2026
+#  Titan SEC Analyzer 2026
 > **Autonomous AI Agent for Forensic SEC Filing Analysis**
 
 ![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)

@@ -42,3 +42,19 @@ def get_financial_trends(ticker):
     except Exception as e:
         print(f"Data extraction failed: {e}")
         return pd.DataFrame() # Return empty if fails
+    
+def extract_risk_factors(filing):
+    """
+    Extracts Item 1A (Risk Factors) using edgartools 3.x Data Objects.
+    """
+    try:
+        # Convert the raw filing into a 'TenK' data object
+        tenk = filing.obj()
+        
+        # Access the standardized 'risk_factors' attribute
+        risks = tenk.risk_factors
+        
+        # Return a snippet or the full text (we'll start with 2000 chars for the UI)
+        return risks[:4000] if risks else "Risk factors section not found."
+    except Exception as e:
+        return f"Error extracting risks: {str(e)}"
