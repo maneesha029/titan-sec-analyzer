@@ -80,12 +80,20 @@ else:
 # ================================
 # RISK ANALYSIS SECTION (Item 1A)
 # ================================
-st.markdown("---")
-st.subheader("⚠️ Item 1A: Risk Factors (Raw Intelligence)")
+
+from services.risk_pipeline import run_risk_pipeline
+
+...
 
 if filing:
-    risk_text = extract_risk_factors(filing)
-    with st.expander("Show Risk Factor text from 10-K"):
-        st.write(risk_text)
-else:
-    st.info("Run Intelligence Audit to load Risk Factors.")
+    result = run_risk_pipeline(filing)
+
+    with st.expander("📄 Raw Risk Factors"):
+        st.write(result["raw_text"])
+
+    st.subheader("📊 Quantified Risk Signals")
+
+    st.metric("Total Risk Words", result["features"]["word_count"])
+    st.metric("Uncertainty Score", result["features"]["uncertainty_score"])
+    st.metric("Regulatory Risk", result["features"]["regulatory_risk_score"])
+    st.metric("Litigation Risk", result["features"]["litigation_risk_score"])
