@@ -26,6 +26,27 @@ if st.sidebar.button("Run Intelligence Audit"):
             st.subheader("Revenue Performance (Live XBRL)")
             revenue_data = get_financial_trends(ticker)
             if not revenue_data.empty:
-                st.line_chart(revenue_data.set_index('end')['val'])
+                #st.line_chart(revenue_data.set_index('end')['val'])
+                st.write(revenue_data)
+                st.write(revenue_data.columns)
+
         else:
             st.error("Company not found. Please check the Ticker.")
+
+# ... existing imports ...
+revenue_data = get_financial_trends(ticker)
+st.write(revenue_data.columns)
+st.write("DEBUG: revenue_data")
+st.write(revenue_data)
+
+st.write("DEBUG: columns")
+st.write(list(revenue_data.columns))
+
+
+
+if not revenue_data.empty:
+    st.subheader("📈 Revenue Growth (Standardized)")
+    # Streamlit can display this new dataframe format directly
+    st.dataframe(revenue_data)
+else:
+    st.warning("Could not extract standardized financial data for this ticker.")
