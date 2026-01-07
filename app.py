@@ -7,8 +7,10 @@ import os
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import streamlit as st
-from core.engine import fetch_company_data, get_financial_trends
-from utils.risk import extract_risk_factors
+
+from core.engine import fetch_company_data, get_financial_trends, extract_risk_factors
+from services.risk_pipeline import run_risk_pipeline
+
 
 # ================================
 # SESSION STATE INITIALIZATION
