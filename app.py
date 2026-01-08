@@ -162,6 +162,23 @@ try:
         # -------------------------------
         summary = summarize_latest_shift(risk_ts)
 
+        from utils.risk_explainer import (
+            build_risk_prompt,
+            generate_risk_explanation
+        )
+
+        st.subheader("🤖 AI Risk Explanation")
+
+        prompt = build_risk_prompt(
+            company=ticker,
+            summary=summary
+        )
+
+        explanation = generate_risk_explanation(prompt)
+
+        st.info(explanation)
+
+
         st.markdown(
             f"""
             ### 🧠 Latest Risk Intelligence ({summary['year']})
