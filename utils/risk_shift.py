@@ -31,7 +31,8 @@ def load_risk_filings(company: str):
     Loads saved Item 1A text files from:
     data/<COMPANY>/*.txt
     """
-    base_path = os.path.join("data", company.upper())
+    base_path = os.path.join("data", "filings", company.upper())
+
     filings = {}
 
     if not os.path.exists(base_path):
@@ -120,3 +121,18 @@ def summarize_latest_shift(df: pd.DataFrame):
     }
 
     return summary
+
+def compute_risk_percent_change(df: pd.DataFrame):
+    """
+    Computes percentage change in risk metrics YoY
+    """
+    if df.empty or len(df) < 2:
+        return pd.DataFrame()
+
+    pct_df = df.copy()
+    for col in df.columns:
+        if col != "year":
+            pct_df[col + "_pct_change"] = df[col].pct_change() * 100
+
+    return pct_df
+
