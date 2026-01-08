@@ -101,11 +101,11 @@ if filing:
 
     st.subheader("📊 Quantified Risk Signals")
 
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Total Risk Words", result["features"]["word_count"])
-    c2.metric("Uncertainty Score", result["features"]["uncertainty_score"])
-    c3.metric("Regulatory Risk", result["features"]["regulatory_risk_score"])
-    c4.metric("Litigation Risk", result["features"]["litigation_risk_score"])
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Uncertainty Score", result["features"]["uncertainty_score"])
+    c2.metric("Regulatory Risk", result["features"]["regulatory_risk_score"])
+    c3.metric("Litigation Risk", result["features"]["litigation_risk_score"])
+
 
 else:
     st.info("Run Intelligence Audit to analyze risk factors.")

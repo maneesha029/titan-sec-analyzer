@@ -47,39 +47,43 @@ def load_risk_filings(company: str):
     return filings
 
 
-# -------------------------------
-# RISK KEYWORD COUNTER
-# -------------------------------
-def count_risk_keywords(text: str):
-    counts = {}
 
-    for category, keywords in RISK_KEYWORDS.items():
-        total = 0
-        for word in keywords:
-            total += text.count(word)
-        counts[category] = total
-
-    counts["total_words"] = len(text.split())
-    return counts
 
 
 # -------------------------------
 # BUILD RISK METRICS TABLE
 # -------------------------------
-def build_risk_timeseries(company: str):
-    filings = load_risk_filings(company)
-    rows = []
+def build_risk_timeseries(ticker, filings_dir="data/filings"):
+    import os
+    import pandas as pd
 
-    for year, text in filings.items():
-        metrics = count_risk_keywords(text)
-        metrics["year"] = int(year)
-        rows.append(metrics)
+    company_path = os.path.join(filings_dir, ticker.upper())
 
-    if not rows:
+    if not os.path.exists(company_path):
         return pd.DataFrame()
 
-    df = pd.DataFrame(rows).sort_values("year")
-    return df
+    rows = []
+
+    for file in sorted(os.listdir(company_path)):
+        if not file.endswith(".txt"):
+            continue
+
+        year = int(file.split("_")[0])
+
+        with open(os.path.join(company_path, file), "r", encoding="utf-8") as f:
+            text = f.read().lower()
+
+        rows.append({
+            "year": year,
+            "uncertainty_score": text.count("uncertain"),
+            "regulatory_risk": text.count("regulat"),
+            "litigation_risk": text.count("litigat"),
+            "cyber_risk": text.count("cyber"),
+            "supply_chain_risk": text.count("supply")
+        })
+
+    return pd.DataFrame(rows).sort_values("year")
+
 
 
 # -------------------------------
@@ -108,19 +112,26 @@ def summarize_latest_shift(df: pd.DataFrame):
         return {}
 
     latest = df.iloc[-1]
-    previous = df.iloc[-2]
+    prev = df.iloc[-2]
 
-    summary = {
-        "year": int(latest["year"]),
-        "total_risk_change": int(latest["total_words"] - previous["total_words"]),
-        "uncertainty_shift": int(latest["uncertainty"] - previous["uncertainty"]),
-        "regulatory_shift": int(latest["regulatory"] - previous["regulatory"]),
-        "litigation_shift": int(latest["litigation"] - previous["litigation"]),
-        "cyber_shift": int(latest["cyber"] - previous["cyber"]),
-        "supply_chain_shift": int(latest["supply_chain"] - previous["supply_chain"]),
+    deltas = {
+        "uncertainty": latest["uncertainty_score"] - prev["uncertainty_score"],
+        "regulatory": latest["regulatory_risk"] - prev["regulatory_risk"],
+        "litigation": latest["litigation_risk"] - prev["litigation_risk"],
+        "cyber": latest["cyber_risk"] - prev["cyber_risk"],
+        "supply_chain": latest["supply_chain_risk"] - prev["supply_chain_risk"],
     }
 
-    return summary
+    dominant_risk = max(deltas, key=lambda k: abs(deltas[k]))
+
+    return {
+        "year": int(latest["year"]),
+        "dominant_risk": dominant_risk,
+        "direction": "Increase" if deltas[dominant_risk] > 0 else "Decrease",
+        "net_change": int(deltas[dominant_risk]),
+        "all_changes": {k: int(v) for k, v in deltas.items()}
+    }
+
 
 def compute_risk_percent_change(df: pd.DataFrame):
     """
