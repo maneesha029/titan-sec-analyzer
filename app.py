@@ -115,6 +115,28 @@ try:
         # Risk shift tables
         shift_df = compute_risk_shift(risk_ts)
         pct_df = compute_risk_percent_change(risk_ts)
+        
+        # -------------------------------
+        # STEP 1: RISK vs FORWARD RETURNS
+        # -------------------------------
+        from utils.market_returns import get_forward_returns
+
+        if not risk_ts.empty:
+            # Compute forward 6-month returns for the years we have
+            returns_df = get_forward_returns(ticker, risk_ts['year'].tolist())
+    
+            # Merge returns with risk metrics
+            risk_ts_with_returns = risk_ts.merge(returns_df, on="year", how="left")
+    
+            st.subheader("📈 Risk vs Forward Returns (6M)")
+            st.dataframe(risk_ts_with_returns, use_container_width=True)
+    
+            # Optional: scatter or line chart
+            st.subheader("Scatter: Risk Change vs Forward Return")
+            st.line_chart(
+                risk_ts_with_returns.set_index("year")[["uncertainty_score", "forward_return"]]
+            )
+
 
         col1, col2 = st.columns(2)
         with col1:
@@ -154,6 +176,7 @@ try:
 
     else:
         st.warning("Insufficient historical filings for risk shift analysis.")
+
 
 except Exception as e:
     st.error(f"Risk shift engine failed: {e}")
