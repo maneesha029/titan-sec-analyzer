@@ -4,15 +4,18 @@ import pandas as pd
 def get_forward_returns(ticker, years):
     """
     Compute forward 6-month returns for given years.
-    Returns a DataFrame with columns: year, forward_return
+    Returns a DataFrame with columns: year, forward_return (%)
     """
     stock = yf.Ticker(ticker)
     prices = stock.history(period="max")['Close']
+    prices.index = pd.to_datetime(prices.index)
+
     returns = {}
 
     for year in years:
         start_date = f"{year}-12-31"
         end_date = pd.to_datetime(start_date) + pd.DateOffset(months=6)
+
         try:
             start_price = prices.loc[prices.index <= start_date].iloc[-1]
             end_price = prices.loc[prices.index >= end_date].iloc[0]
