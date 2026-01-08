@@ -87,73 +87,11 @@ if company:
 else:
     st.info("Run Intelligence Audit to load company data.")
 
+
+
 # ================================
 # RISK ANALYSIS SECTION (Item 1A)
 # ================================
-
-from services.risk_pipeline import run_risk_pipeline
-
-# ================================
-# RISK SHIFT ANALYSIS (YoY)
-# ================================
-
-st.subheader("📉 Risk Shift Analysis (Year-over-Year)")
-
-risk_ts = build_risk_timeseries(
-    ticker=ticker,
-    filings_dir="data/filings"
-)
-
-if risk_ts is not None and not risk_ts.empty:
-    shift_df = compute_risk_shift(risk_ts)
-    pct_df = compute_risk_percent_change(risk_ts)
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.write("**Absolute Risk Change**")
-        st.dataframe(shift_df)
-
-    with col2:
-        st.write("**% Risk Change**")
-        st.dataframe(pct_df)
-
-    st.subheader("🧠 Latest Risk Interpretation")
-    st.info(summarize_latest_shift(shift_df))
-
-else:
-    st.warning("Not enough historical filings to compute risk shift.")
-
-st.markdown("---")
-st.subheader("📊 Multi-Year Risk Shift Intelligence")
-
-risk_df = build_risk_timeseries(ticker)
-
-if not risk_df.empty:
-    st.caption("Historical risk signal extracted from Item 1A (10-K filings)")
-    st.dataframe(risk_df, use_container_width=True)
-
-    shift_df = compute_risk_shift(risk_df)
-    st.subheader("📉 Absolute Risk Change (YoY)")
-    st.dataframe(shift_df, use_container_width=True)
-
-    pct_df = compute_risk_percent_change(risk_df)
-    st.subheader("📈 Risk Growth Rate (%)")
-    st.dataframe(pct_df.round(2), use_container_width=True)
-
-    summary = summarize_latest_shift(risk_df)
-
-    st.subheader(f"⚠️ Latest Risk Delta ({summary['year']})")
-    c1, c2, c3, c4 = st.columns(4)
-
-    c1.metric("Uncertainty", summary["uncertainty_shift"])
-    c2.metric("Regulatory", summary["regulatory_shift"])
-    c3.metric("Cyber", summary["cyber_shift"])
-    c4.metric("Supply Chain", summary["supply_chain_shift"])
-else:
-    st.info("No historical risk filings found.")
-
-
 
 if filing:
     result = run_risk_pipeline(filing)
@@ -163,7 +101,67 @@ if filing:
 
     st.subheader("📊 Quantified Risk Signals")
 
-    st.metric("Total Risk Words", result["features"]["word_count"])
-    st.metric("Uncertainty Score", result["features"]["uncertainty_score"])
-    st.metric("Regulatory Risk", result["features"]["regulatory_risk_score"])
-    st.metric("Litigation Risk", result["features"]["litigation_risk_score"])
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Total Risk Words", result["features"]["word_count"])
+    c2.metric("Uncertainty Score", result["features"]["uncertainty_score"])
+    c3.metric("Regulatory Risk", result["features"]["regulatory_risk_score"])
+    c4.metric("Litigation Risk", result["features"]["litigation_risk_score"])
+
+else:
+    st.info("Run Intelligence Audit to analyze risk factors.")
+
+# ================================
+# MULTI-YEAR RISK SHIFT INTELLIGENCE
+# ================================
+
+st.markdown("---")
+st.subheader("📈 Multi-Year Risk Shift Intelligence")
+
+try:
+    risk_ts = build_risk_timeseries(
+        ticker=ticker,
+        filings_dir="data/filings"
+    )
+    
+
+    if risk_ts is not None and not risk_ts.empty:
+        st.caption("Item 1A risk signals extracted across annual filings (10-K)")
+
+
+        st.line_chart(
+            risk_ts.set_index("year")[
+                ["uncertainty_score", "regulatory_risk", "litigation_risk"]
+            ]
+        )
+
+        shift_df = compute_risk_shift(risk_ts)
+        pct_df = compute_risk_percent_change(risk_ts)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write("**Absolute Year-over-Year Change**")
+            st.dataframe(shift_df, use_container_width=True)
+
+        with col2:
+            st.write("**Percentage Risk Change (%)**")
+            st.dataframe(pct_df.round(2), use_container_width=True)
+
+        summary = summarize_latest_shift(risk_ts)
+
+        st.markdown(
+            f"""
+            ### 🧠 Latest Risk Intelligence ({summary['year']})
+
+            • **Dominant Risk Driver:** {summary['dominant_risk']}  
+            • **Direction:** {summary['direction']}  
+            • **Net Risk Change:** {summary['net_change']:+.2f}
+            """
+        )
+    
+
+
+    else:
+        st.warning("Insufficient historical filings for risk shift analysis.")
+
+except Exception as e:
+    st.error(f"Risk shift engine failed: {e}")
