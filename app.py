@@ -4,9 +4,16 @@
 
 import sys
 import os
+import streamlit as st
+st.set_page_config(
+    page_title="Titan SEC Analyzer",
+    page_icon="🔱",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-import streamlit as st
+
 
 from core.engine import fetch_company_data, get_financial_trends, extract_risk_factors
 from services.risk_pipeline import run_risk_pipeline
