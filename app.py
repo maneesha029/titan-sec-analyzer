@@ -2,9 +2,17 @@
 # Titan SEC Analyzer 2026
 # ================================
 
-import sys
-import os
+import sys, os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 import streamlit as st
+from utils.risk_shift import (
+    build_risk_timeseries,
+    compute_risk_shift,
+    compute_risk_percent_change,
+    summarize_latest_shift
+)
+
 st.set_page_config(
     page_title="Titan SEC Analyzer",
     page_icon="🔱",
@@ -12,7 +20,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 
 
 from core.engine import fetch_company_data, get_financial_trends, extract_risk_factors
@@ -31,12 +39,7 @@ if "filing" not in st.session_state:
 if "revenue_data" not in st.session_state:
     st.session_state.revenue_data = None
 
-# ================================
-# PAGE CONFIG & TITLE
-# ================================
-st.set_page_config(page_title="Titan SEC 2026", layout="wide")
-st.title("🔱 Titan SEC Analyzer")
-st.caption("Live Forensic Analysis of SEC Filings")
+
 
 # ================================
 # SIDEBAR INPUT
@@ -90,7 +93,67 @@ else:
 
 from services.risk_pipeline import run_risk_pipeline
 
-...
+# ================================
+# RISK SHIFT ANALYSIS (YoY)
+# ================================
+
+st.subheader("📉 Risk Shift Analysis (Year-over-Year)")
+
+risk_ts = build_risk_timeseries(
+    ticker=ticker,
+    filings_dir="data/filings"
+)
+
+if risk_ts is not None and not risk_ts.empty:
+    shift_df = compute_risk_shift(risk_ts)
+    pct_df = compute_risk_percent_change(risk_ts)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.write("**Absolute Risk Change**")
+        st.dataframe(shift_df)
+
+    with col2:
+        st.write("**% Risk Change**")
+        st.dataframe(pct_df)
+
+    st.subheader("🧠 Latest Risk Interpretation")
+    st.info(summarize_latest_shift(shift_df))
+
+else:
+    st.warning("Not enough historical filings to compute risk shift.")
+
+st.markdown("---")
+st.subheader("📊 Multi-Year Risk Shift Intelligence")
+
+risk_df = build_risk_timeseries(ticker)
+
+if not risk_df.empty:
+    st.caption("Historical risk signal extracted from Item 1A (10-K filings)")
+    st.dataframe(risk_df, use_container_width=True)
+
+    shift_df = compute_risk_shift(risk_df)
+    st.subheader("📉 Absolute Risk Change (YoY)")
+    st.dataframe(shift_df, use_container_width=True)
+
+    pct_df = compute_risk_percent_change(risk_df)
+    st.subheader("📈 Risk Growth Rate (%)")
+    st.dataframe(pct_df.round(2), use_container_width=True)
+
+    summary = summarize_latest_shift(risk_df)
+
+    st.subheader(f"⚠️ Latest Risk Delta ({summary['year']})")
+    c1, c2, c3, c4 = st.columns(4)
+
+    c1.metric("Uncertainty", summary["uncertainty_shift"])
+    c2.metric("Regulatory", summary["regulatory_shift"])
+    c3.metric("Cyber", summary["cyber_shift"])
+    c4.metric("Supply Chain", summary["supply_chain_shift"])
+else:
+    st.info("No historical risk filings found.")
+
+
 
 if filing:
     result = run_risk_pipeline(filing)
