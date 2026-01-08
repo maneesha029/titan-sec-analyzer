@@ -107,77 +107,73 @@ try:
     if risk_ts is not None and not risk_ts.empty:
         st.caption("Item 1A risk signals extracted across annual filings (10-K)")
 
-        # Multi-year line chart
+        # -------------------------------
+        # Multi-year Risk Line Chart
+        # -------------------------------
         st.line_chart(
-            risk_ts.set_index("year")[["uncertainty_score", "regulatory_risk", "litigation_risk"]]
+            risk_ts.set_index("year")[
+                ["uncertainty_score", "regulatory_risk", "litigation_risk"]
+            ]
         )
 
-        # Risk shift tables
+        # -------------------------------
+        # Risk Shift Tables
+        # -------------------------------
         shift_df = compute_risk_shift(risk_ts)
         pct_df = compute_risk_percent_change(risk_ts)
-        
-        # -------------------------------
-        # STEP 1: RISK vs FORWARD RETURNS
-        # -------------------------------
-        from utils.market_returns import get_forward_returns
-
-        if not risk_ts.empty:
-            # Compute forward 6-month returns for the years we have
-            returns_df = get_forward_returns(ticker, risk_ts['year'].tolist())
-    
-            # Merge returns with risk metrics
-            risk_ts_with_returns = risk_ts.merge(returns_df, on="year", how="left")
-    
-            st.subheader("📈 Risk vs Forward Returns (6M)")
-            st.dataframe(risk_ts_with_returns, use_container_width=True)
-    
-            # Optional: scatter or line chart
-            st.subheader("Scatter: Risk Change vs Forward Return")
-            st.line_chart(
-                risk_ts_with_returns.set_index("year")[["uncertainty_score", "forward_return"]]
-            )
-
 
         col1, col2 = st.columns(2)
         with col1:
             st.write("**Absolute Year-over-Year Change**")
             st.dataframe(shift_df, use_container_width=True)
+
         with col2:
             st.write("**Percentage Risk Change (%)**")
             st.dataframe(pct_df.round(2), use_container_width=True)
 
-        # Latest risk summary
+        # -------------------------------
+        # STEP 1: Risk vs Forward Returns
+        # -------------------------------
+        from utils.market_returns import get_forward_returns
+
+        returns_df = get_forward_returns(
+            ticker,
+            risk_ts["year"].tolist()
+        )
+
+        risk_ts_with_returns = risk_ts.merge(
+            returns_df,
+            on="year",
+            how="left"
+        )
+
+        st.subheader("📈 Risk vs Forward 6-Month Returns")
+        st.dataframe(risk_ts_with_returns, use_container_width=True)
+
+        st.subheader("Risk Signal vs Market Reaction")
+        st.line_chart(
+            risk_ts_with_returns.set_index("year")[
+                ["uncertainty_score", "forward_return"]
+            ]
+        )
+
+        # -------------------------------
+        # Latest Risk Summary
+        # -------------------------------
         summary = summarize_latest_shift(risk_ts)
+
         st.markdown(
             f"""
             ### 🧠 Latest Risk Intelligence ({summary['year']})
+
             • **Dominant Risk Driver:** {summary['dominant_risk']}  
             • **Direction:** {summary['direction']}  
             • **Net Risk Change:** {summary['net_change']:+.2f}
             """
         )
 
-        # ================================
-        # FORWARD 6-MONTH RETURNS
-        # ================================
-        from utils.market_returns import get_forward_returns
-
-        returns_df = get_forward_returns(ticker, risk_ts['year'].tolist())
-        risk_ts_with_returns = risk_ts.merge(returns_df, on="year", how="left")
-
-        st.subheader("📈 Risk vs Forward Returns (6M)")
-        st.dataframe(risk_ts_with_returns, use_container_width=True)
-
-        # Scatter plot / line chart
-        st.subheader("Scatter: Risk Change vs Forward Return")
-        st.line_chart(
-            risk_ts_with_returns.set_index("year")[["uncertainty_score", "forward_return"]]
-        )
-
     else:
         st.warning("Insufficient historical filings for risk shift analysis.")
 
-
 except Exception as e:
     st.error(f"Risk shift engine failed: {e}")
-
