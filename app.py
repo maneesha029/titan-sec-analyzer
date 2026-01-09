@@ -115,6 +115,14 @@ try:
                 ["uncertainty_score", "regulatory_risk", "litigation_risk"]
             ]
         )
+        # try:
+        #     texts = load_risk_texts("NVDA")
+        #     ts = build_risk_timeseries(texts)
+        #     shifts = compute_risk_shift(ts)
+        # except Exception as e:
+        #     st.error(f"Risk engine failed: {e}")
+        #     st.stop()
+
 
         # -------------------------------
         # Risk Shift Tables
@@ -176,22 +184,7 @@ try:
             generate_risk_explanation
         )
 
-        st.subheader("🤖 AI Risk Explanation")
-
-        if summary is not None:
-            from utils.risk_explainer import (
-                build_risk_prompt,
-                generate_risk_explanation
-            )
-
-            st.subheader("🤖 AI Risk Explanation")
-            prompt = build_risk_prompt(
-                company=ticker,
-                summary=summary
-            )
-
-            explanation = generate_risk_explanation(prompt)
-            st.info(explanation)
+        
 
 
         if summary is not None:
