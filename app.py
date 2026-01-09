@@ -33,6 +33,7 @@ from utils.risk_shift import (
 )
 
 st.set_page_config(
+    
     page_title="Titan SEC Analyzer",
     page_icon="🔱",
     layout="wide",
