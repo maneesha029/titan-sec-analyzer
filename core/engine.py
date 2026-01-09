@@ -58,3 +58,34 @@ def extract_risk_factors(filing):
         return risks[:4000] if risks else "Risk factors section not found."
     except Exception as e:
         return f"Error extracting risks: {str(e)}"
+    
+from sec_edgar_downloader import Downloader
+import os
+
+def download_10k_filings(ticker, years):
+    dl = Downloader("YourName", "your@email.com")
+    base_dir = f"data/filings/{ticker}"
+    os.makedirs(base_dir, exist_ok=True)
+
+    for year in years:
+        try:
+            dl.get(
+                "10-K",
+                ticker,
+                after=f"{year}-01-01",
+                before=f"{year}-12-31"
+            )
+        except:
+            continue
+def extract_and_save_item_1a(ticker, year, filing_text):
+    save_dir = f"data/filings/{ticker}"
+    os.makedirs(save_dir, exist_ok=True)
+
+    if filing_text is None or len(filing_text.strip()) < 500:
+        return False
+
+    file_path = f"{save_dir}/{year}.txt"
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(filing_text)
+
+    return True

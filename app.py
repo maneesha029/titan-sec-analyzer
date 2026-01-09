@@ -161,6 +161,13 @@ try:
         # Latest Risk Summary
         # -------------------------------
         summary = summarize_latest_shift(risk_ts)
+        from services.risk_explainer import explain_risk_shift
+
+        ai_explanation = explain_risk_shift(summary, company.name)
+
+        st.subheader("🤖 AI Risk Interpretation")
+        st.write(ai_explanation)
+
 
         from utils.risk_explainer import (
             build_risk_prompt,
