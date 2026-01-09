@@ -101,7 +101,7 @@ try:
     # Build risk timeseries
     risk_ts = build_risk_timeseries(
         ticker=ticker,
-        filings_dir="data/filings"
+        filings_dir="data/sec"
     )
 
     if risk_ts is not None and not risk_ts.empty:
@@ -161,14 +161,16 @@ try:
         # Latest Risk Summary
         # -------------------------------
         summary = summarize_latest_shift(risk_ts)
-        from services.risk_explainer import explain_risk_shift
 
-        ai_explanation = explain_risk_shift(summary, company.name)
+        if summary is None:
+            st.warning("⚠️ Not enough multi-year filings to generate AI risk interpretation.")
+        else:
+            from services.risk_explainer import explain_risk_shift
 
-        st.subheader("🤖 AI Risk Interpretation")
-        st.write(ai_explanation)
+            ai_explanation = explain_risk_shift(summary, company.name)
 
-
+            st.subheader("🤖 AI Risk Interpretation")
+            st.write(ai_explanation)
         from utils.risk_explainer import (
             build_risk_prompt,
             generate_risk_explanation
@@ -176,25 +178,33 @@ try:
 
         st.subheader("🤖 AI Risk Explanation")
 
-        prompt = build_risk_prompt(
-            company=ticker,
-            summary=summary
-        )
+        if summary is not None:
+            from utils.risk_explainer import (
+                build_risk_prompt,
+                generate_risk_explanation
+            )
 
-        explanation = generate_risk_explanation(prompt)
+            st.subheader("🤖 AI Risk Explanation")
+            prompt = build_risk_prompt(
+                company=ticker,
+                summary=summary
+            )
 
-        st.info(explanation)
+            explanation = generate_risk_explanation(prompt)
+            st.info(explanation)
 
 
-        st.markdown(
-            f"""
-            ### 🧠 Latest Risk Intelligence ({summary['year']})
+        if summary is not None:
+            st.markdown(
+                f"""
+                ### 🧠 Latest Risk Intelligence ({summary['year']})
 
-            • **Dominant Risk Driver:** {summary['dominant_risk']}  
-            • **Direction:** {summary['direction']}  
-            • **Net Risk Change:** {summary['net_change']:+.2f}
-            """
-        )
+                • **Dominant Risk Driver:** {summary['dominant_risk']}  
+                • **Direction:** {summary['direction']}  
+                • **Net Risk Change:** {summary['net_change']:+.2f}
+                """
+            )
+
 
     else:
         st.warning("Insufficient historical filings for risk shift analysis.")
