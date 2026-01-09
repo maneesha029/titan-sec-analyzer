@@ -1,6 +1,24 @@
 # ================================
 # Titan SEC Analyzer 2026
 # ================================
+st.markdown("""
+<style>
+body {
+    background-color: #0e1117;
+}
+.metric-container {
+    background-color: #161b22;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #30363d;
+}
+.section-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin-top: 30px;
+}
+</style>
+""", unsafe_allow_html=True)
 
 import sys, os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
