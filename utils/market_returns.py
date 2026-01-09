@@ -24,3 +24,18 @@ def get_forward_returns(ticker, years):
             returns[year] = None
 
     return pd.DataFrame(list(returns.items()), columns=["year", "forward_return"])
+
+def link_risk_to_returns(risk_ts, returns):
+    combined = []
+
+    for year, risk in risk_ts.items():
+        if risk is None or year not in returns:
+            continue
+
+        combined.append({
+            "year": year,
+            "uncertainty": risk["uncertainty_score"],
+            "forward_return": returns[year]
+        })
+
+    return combined
