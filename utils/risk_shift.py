@@ -71,7 +71,13 @@ def build_risk_timeseries(ticker, filings_dir="data/filings"):
         year = int(file.split("_")[0])
 
         with open(os.path.join(company_path, file), "r", encoding="utf-8") as f:
-            text = f.read().lower()
+            text = f.read()
+
+        # 🔐 SAFETY RULE
+        if text is None or text.strip() == "":
+            continue
+
+        text = text.lower()
 
         rows.append({
             "year": year,
@@ -83,6 +89,7 @@ def build_risk_timeseries(ticker, filings_dir="data/filings"):
         })
 
     return pd.DataFrame(rows).sort_values("year")
+
 
 
 
