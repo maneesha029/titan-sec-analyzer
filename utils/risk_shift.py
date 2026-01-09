@@ -31,7 +31,7 @@ def load_risk_filings(company: str):
     Loads saved Item 1A text files from:
     data/<COMPANY>/*.txt
     """
-    base_path = os.path.join("data", "filings", company.upper())
+    base_path = os.path.join("data", "sec", company.upper())
 
     filings = {}
 
@@ -39,7 +39,7 @@ def load_risk_filings(company: str):
         return filings
 
     for file in sorted(os.listdir(base_path)):
-        if file.endswith("_10K.txt"):
+        if file.endswith(".txt"):
             year = file.split("_")[0]
             with open(os.path.join(base_path, file), "r", encoding="utf-8") as f:
                 filings[year] = f.read().lower()
@@ -53,7 +53,7 @@ def load_risk_filings(company: str):
 # -------------------------------
 # BUILD RISK METRICS TABLE
 # -------------------------------
-def build_risk_timeseries(ticker, filings_dir="data/filings"):
+def build_risk_timeseries(ticker, filings_dir="data/sec"):
     import os
     import pandas as pd
 
@@ -68,12 +68,13 @@ def build_risk_timeseries(ticker, filings_dir="data/filings"):
         if not file.endswith(".txt"):
             continue
 
-        year = int(file.split("_")[0])
+        # ✅ FIX HERE
+        year = int(file.replace(".txt", ""))
 
         with open(os.path.join(company_path, file), "r", encoding="utf-8") as f:
             text = f.read()
 
-        # 🔐 SAFETY RULE
+        # 🔐 SAFETY RULE (CORRECT)
         if text is None or text.strip() == "":
             continue
 
@@ -89,6 +90,7 @@ def build_risk_timeseries(ticker, filings_dir="data/filings"):
         })
 
     return pd.DataFrame(rows).sort_values("year")
+
 
 
 
@@ -153,4 +155,3 @@ def compute_risk_percent_change(df: pd.DataFrame):
             pct_df[col + "_pct_change"] = df[col].pct_change() * 100
 
     return pct_df
-
