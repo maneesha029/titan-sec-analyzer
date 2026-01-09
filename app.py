@@ -1,6 +1,10 @@
 # ================================
 # Titan SEC Analyzer 2026
 # ================================
+import sys, os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+import streamlit as st
 st.markdown("""
 <style>
 body {
@@ -20,10 +24,7 @@ body {
 </style>
 """, unsafe_allow_html=True)
 
-import sys, os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-import streamlit as st
 from utils.risk_shift import (
     build_risk_timeseries,
     compute_risk_shift,
