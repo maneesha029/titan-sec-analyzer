@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TITAN — SEC Risk Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#080c14;
+  --surface:#0d1420;
+  --surface2:#131c2e;
+  --border:#1e2d47;
+  --accent:#3b82f6;
+  --accent2:#06b6d4;
+  --danger:#ef4444;
+  --warn:#f59e0b;
+  --green:#22c55e;
+  --text:#e2e8f0;
+  --muted:#64748b;
+  --mono:'Space Mono',monospace;
+  --sans:'DM Sans',sans-serif;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);overflow-x:hidden;}
+
+/* Grid overlay */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(59,130,246,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.03) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;z-index:0;
+}
+
+/* Nav */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 48px;height:60px;
+  background:rgba(8,12,20,.85);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--accent);letter-spacing:.05em;}
+.nav-links{display:flex;gap:32px;}
+.nav-links a{font-size:13px;color:var(--muted);text-decoration:none;transition:color .2s;}
+.nav-links a:hover{color:var(--text);}
+.nav-cta{
+  font-size:13px;font-weight:600;padding:8px 20px;
+  background:var(--accent);color:#fff;border:none;border-radius:6px;
+  cursor:pointer;text-decoration:none;transition:opacity .2s;font-family:var(--sans);
+}
+.nav-cta:hover{opacity:.85;}
+
+/* Hero */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:120px 24px 80px;position:relative;z-index:1;
+}
+.hero-tag{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;
+  border:1px solid rgba(59,130,246,.3);border-radius:100px;padding:6px 14px;margin-bottom:32px;
+}
+.hero-tag .dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.8);}}
+
+h1{
+  font-family:var(--mono);font-size:clamp(36px,6vw,72px);font-weight:700;line-height:1.05;
+  letter-spacing:-.02em;margin-bottom:24px;
+}
+h1 .accent{color:var(--accent);}
+h1 .dim{color:var(--muted);}
+
+.hero-sub{
+  font-size:clamp(15px,2vw,18px);color:var(--muted);max-width:640px;line-height:1.7;margin-bottom:40px;
+}
+.hero-actions{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;}
+.btn-primary{
+  font-size:14px;font-weight:600;padding:14px 28px;
+  background:var(--accent);color:#fff;border:none;border-radius:8px;
+  cursor:pointer;text-decoration:none;transition:transform .15s,opacity .15s;font-family:var(--sans);
+}
+.btn-primary:hover{transform:translateY(-1px);opacity:.9;}
+.btn-ghost{
+  font-size:14px;font-weight:500;padding:14px 28px;
+  background:transparent;color:var(--text);border:1px solid var(--border);border-radius:8px;
+  cursor:pointer;text-decoration:none;transition:border-color .2s;font-family:var(--sans);
+}
+.btn-ghost:hover{border-color:var(--accent);}
+
+/* Terminal mockup */
+.terminal{
+  margin:64px auto 0;max-width:720px;width:100%;
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;
+  text-align:left;position:relative;
+}
+.terminal-header{
+  display:flex;align-items:center;gap:8px;padding:12px 16px;
+  border-bottom:1px solid var(--border);background:var(--surface2);
+}
+.tbar{width:12px;height:12px;border-radius:50%;}
+.tbar.r{background:#ef4444;}.tbar.y{background:#f59e0b;}.tbar.g{background:#22c55e;}
+.tbar-title{font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:8px;}
+.terminal-body{padding:20px 24px;font-family:var(--mono);font-size:13px;line-height:1.8;}
+.t-line{display:flex;gap:8px;}
+.t-prompt{color:var(--accent);}
+.t-cmd{color:var(--text);}
+.t-comment{color:var(--muted);}
+.t-out{color:var(--green);}
+.t-warn{color:var(--warn);}
+.t-err{color:var(--danger);}
+.t-data{color:var(--accent2);}
+.t-blank{height:8px;}
+
+/* Stats bar */
+.stats-bar{
+  display:flex;justify-content:center;gap:0;flex-wrap:wrap;
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  background:var(--surface);margin:0;padding:0;position:relative;z-index:1;
+}
+.stat-item{
+  display:flex;flex-direction:column;align-items:center;padding:28px 40px;
+  border-right:1px solid var(--border);flex:1;min-width:160px;
+}
+.stat-item:last-child{border-right:none;}
+.stat-num{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--accent);letter-spacing:-.02em;}
+.stat-label{font-size:12px;color:var(--muted);margin-top:4px;letter-spacing:.05em;text-transform:uppercase;}
+
+/* Section */
+section{padding:96px 24px;position:relative;z-index:1;}
+.section-tag{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;}
+h2{font-family:var(--mono);font-size:clamp(24px,4vw,40px);font-weight:700;letter-spacing:-.02em;margin-bottom:16px;}
+.section-sub{font-size:15px;color:var(--muted);max-width:520px;line-height:1.7;margin-bottom:48px;}
+.container{max-width:1080px;margin:0 auto;}
+
+/* Risk cards */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;}
+.risk-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:24px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s;
+}
+.risk-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+.risk-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.rc-uncertainty::before{background:var(--accent);}
+.rc-regulatory::before{background:var(--warn);}
+.rc-litigation::before{background:var(--danger);}
+.rc-supply::before{background:var(--green);}
+.card-icon{font-size:22px;margin-bottom:12px;}
+.card-title{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;}
+.card-desc{font-size:13px;color:var(--muted);line-height:1.6;}
+.card-signal{
+  margin-top:16px;display:flex;align-items:center;gap:10px;
+}
+.signal-bar-bg{flex:1;height:4px;background:var(--border);border-radius:2px;}
+.signal-bar{height:4px;border-radius:2px;transition:width .6s ease;}
+.signal-val{font-family:var(--mono);font-size:11px;color:var(--muted);}
+
+/* Flow section */
+.flow{display:flex;flex-direction:column;gap:0;max-width:680px;}
+.flow-step{
+  display:flex;gap:20px;align-items:flex-start;padding:24px 0;
+  border-bottom:1px solid var(--border);
+}
+.flow-step:last-child{border-bottom:none;}
+.flow-num{
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  width:28px;height:28px;border:1px solid var(--border);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  color:var(--accent);margin-top:2px;
+}
+.flow-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.flow-body{font-size:13px;color:var(--muted);line-height:1.6;}
+
+/* Tech stack */
+.tech-grid{display:flex;flex-wrap:wrap;gap:12px;}
+.tech-pill{
+  font-family:var(--mono);font-size:12px;padding:8px 16px;
+  background:var(--surface);border:1px solid var(--border);border-radius:100px;
+  color:var(--muted);transition:color .2s,border-color .2s;
+}
+.tech-pill:hover{color:var(--accent);border-color:var(--accent);}
+
+/* Use case grid */
+.use-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;}
+.use-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;
+}
+.use-icon{font-size:18px;margin-bottom:10px;}
+.use-title{font-size:13px;font-weight:600;margin-bottom:6px;}
+.use-body{font-size:12px;color:var(--muted);line-height:1.6;}
+
+/* CTA */
+.cta-section{
+  text-align:center;padding:96px 24px;border-top:1px solid var(--border);position:relative;z-index:1;
+}
+.cta-section h2{font-size:clamp(28px,5vw,52px);margin-bottom:16px;}
+.cta-section p{font-size:15px;color:var(--muted);margin-bottom:40px;}
+.badge-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:32px;}
+.badge{
+  font-family:var(--mono);font-size:10px;padding:5px 12px;border-radius:4px;
+  letter-spacing:.08em;text-transform:uppercase;
+}
+.badge-blue{background:rgba(59,130,246,.15);color:var(--accent);border:1px solid rgba(59,130,246,.3);}
+.badge-green{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.25);}
+.badge-gray{background:var(--surface);color:var(--muted);border:1px solid var(--border);}
+
+footer{
+  text-align:center;padding:32px;border-top:1px solid var(--border);
+  font-size:12px;color:var(--muted);position:relative;z-index:1;
+}
+
+/* Responsive */
+@media(max-width:640px){
+  nav{padding:0 20px;}
+  .nav-links{display:none;}
+  .stat-item{padding:20px;}
+  section{padding:64px 20px;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">⚡ TITAN</div>
+  <div class="nav-links">
+    <a href="#how">How It Works</a>
+    <a href="#signals">Signals</a>
+    <a href="#stack">Tech</a>
+    <a href="#deploy">Deploy</a>
+  </div>
+  <a class="nav-cta" href="https://your-demo-link.streamlit.app" target="_blank">Launch Demo →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag"><span class="dot"></span> Live on SEC EDGAR · GPT-4o Powered</div>
+  <h1>
+    <span class="dim">SEC filings are</span><br/>
+    <span class="accent">a signal.</span><br/>
+    <span class="dim">Most people miss it.</span>
+  </h1>
+  <p class="hero-sub">
+    Titan reads 10-K risk factors, converts them to quantitative signals, detects regime shifts — and explains what changed, and why it matters.
+  </p>
+  <div class="hero-actions">
+    <a class="btn-primary" href="https://your-demo-link.streamlit.app" target="_blank">🚀 Launch App</a>
+    <a class="btn-ghost" href="https://github.com/yourusername/titan-sec-analyzer" target="_blank">View on GitHub</a>
+  </div>
+
+  <div class="terminal">
+    <div class="terminal-header">
+      <div class="tbar r"></div><div class="tbar y"></div><div class="tbar g"></div>
+      <span class="tbar-title">titan_analyzer.py — NVDA 2021–2024</span>
+    </div>
+    <div class="terminal-body">
+      <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd">titan analyze --ticker NVDA --years 2021 2022 2023 2024</span></div>
+      <div class="t-blank"></div>
+      <div class="t-line"><span class="t-out">✓ Fetched 4 filings from SEC EDGAR</span></div>
+      <div class="t-line"><span class="t-out">✓ Extracted Item 1A from each filing</span></div>
+      <div class="t-line"><span class="t-out">✓ Quantifying risk signals...</span></div>
+      <div class="t-blank"></div>
+      <div class="t-line"><span class="t-data">Regulatory Risk:    [▓▓▓▓▓▓░░] 0.62  (+0.31 YoY)  ⚠ REGIME SHIFT</span></div>
+      <div class="t-line"><span class="t-data">Uncertainty Index:  [▓▓▓▓░░░░] 0.49  (+0.11 YoY)</span></div>
+      <div class="t-line"><span class="t-data">Litigation Exposure:[▓▓░░░░░░] 0.28  (+0.04 YoY)</span></div>
+      <div class="t-line"><span class="t-data">Supply Chain Risk:  [▓▓▓▓▓░░░] 0.58  (+0.19 YoY)</span></div>
+      <div class="t-blank"></div>
+      <div class="t-line"><span class="t-warn">⚡ AI INTERPRETATION</span></div>
+      <div class="t-line"><span class="t-comment"># NVDA's regulatory risk spiked sharply in FY2023. Export control</span></div>
+      <div class="t-line"><span class="t-comment"># restrictions from the US Commerce Dept targeted A100/H100 chips,</span></div>
+      <div class="t-line"><span class="t-comment"># introducing systemic China revenue uncertainty. This was not yet</span></div>
+      <div class="t-line"><span class="t-comment"># priced into consensus estimates at filing date.</span></div>
+      <div class="t-blank"></div>
+      <div class="t-line"><span class="t-out">✓ Done. Risk regime shift detected in FY2023.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat-item"><div class="stat-num">4</div><div class="stat-label">Risk Signals</div></div>
+  <div class="stat-item"><div class="stat-num">10K+</div><div class="stat-label">Filings Accessible</div></div>
+  <div class="stat-item"><div class="stat-num">6mo</div><div class="stat-label">Forward Return Mapped</div></div>
+  <div class="stat-item"><div class="stat-num">GPT-4o</div><div class="stat-label">AI Interpreter</div></div>
+  <div class="stat-item"><div class="stat-num">&lt;60s</div><div class="stat-label">Full Analysis Time</div></div>
+</div>
+
+<!-- SIGNALS -->
+<section id="signals">
+<div class="container">
+  <div class="section-tag">// Risk Intelligence</div>
+  <h2>4 Quantified Risk Signals</h2>
+  <p class="section-sub">Titan converts unstructured 10-K text into structured, comparable, trackable signals.</p>
+  <div class="cards-grid">
+    <div class="risk-card rc-uncertainty">
+      <div class="card-icon">🌫️</div>
+      <div class="card-title">Uncertainty Index</div>
+      <div class="card-desc">Measures hedging language density — forward-looking disclaimers, probability qualifiers, and epistemic uncertainty signals.</div>
+      <div class="card-signal">
+        <div class="signal-bar-bg"><div class="signal-bar" style="width:73%;background:var(--accent);"></div></div>
+        <div class="signal-val">0.73</div>
+      </div>
+    </div>
+    <div class="risk-card rc-regulatory">
+      <div class="card-icon">⚖️</div>
+      <div class="card-title">Regulatory Pressure</div>
+      <div class="card-desc">Tracks government, policy, and compliance exposure. Spikes here often precede enforcement actions and sector-level repricing.</div>
+      <div class="card-signal">
+        <div class="signal-bar-bg"><div class="signal-bar" style="width:62%;background:var(--warn);"></div></div>
+        <div class="signal-val">0.62</div>
+      </div>
+    </div>
+    <div class="risk-card rc-litigation">
+      <div class="card-icon">⚠️</div>
+      <div class="card-title">Litigation Exposure</div>
+      <div class="card-desc">Surfaces legal proceedings language, indemnification clauses, and IP disputes before they appear in financial statements.</div>
+      <div class="card-signal">
+        <div class="signal-bar-bg"><div class="signal-bar" style="width:35%;background:var(--danger);"></div></div>
+        <div class="signal-val">0.35</div>
+      </div>
+    </div>
+    <div class="risk-card rc-supply">
+      <div class="card-icon">🔗</div>
+      <div class="card-title">Supply Chain Risk</div>
+      <div class="card-desc">Detects supplier concentration, single-source dependencies, and geopolitical exposure in the supply chain narrative.</div>
+      <div class="card-signal">
+        <div class="signal-bar-bg"><div class="signal-bar" style="width:58%;background:var(--green);"></div></div>
+        <div class="signal-val">0.58</div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+<div class="container">
+  <div class="section-tag">// Pipeline</div>
+  <h2>How It Works</h2>
+  <p class="section-sub">Six autonomous steps from raw filing to actionable intelligence.</p>
+  <div class="flow">
+    <div class="flow-step"><div class="flow-num">01</div><div><div class="flow-title">EDGAR Ingestion</div><div class="flow-body">Fetches live 10-K filings for any ticker via edgartools. Handles XBRL, filing indexing, and multi-year retrieval automatically.</div></div></div>
+    <div class="flow-step"><div class="flow-num">02</div><div><div class="flow-title">Item 1A Extraction</div><div class="flow-body">Surgically isolates the Risk Factors section. This is where companies are legally required to disclose every known risk — raw signal source.</div></div></div>
+    <div class="flow-step"><div class="flow-num">03</div><div><div class="flow-title">Signal Quantification</div><div class="flow-body">Converts prose to 4 numerical signals using keyword frequency, context weighting, and normalized scoring across fiscal years.</div></div></div>
+    <div class="flow-step"><div class="flow-num">04</div><div><div class="flow-title">Regime Shift Detection</div><div class="flow-body">Computes YoY deltas and percentage changes. Flags structural breaks — not just noise — using threshold-based regime detection.</div></div></div>
+    <div class="flow-step"><div class="flow-num">05</div><div><div class="flow-title">Market Correlation</div><div class="flow-body">Maps risk levels to 6-month forward returns to test whether elevated risk signals are priced in at time of filing.</div></div></div>
+    <div class="flow-step"><div class="flow-num">06</div><div><div class="flow-title">AI Interpretation</div><div class="flow-body">GPT-4o reads the risk shifts and generates human-readable explanations of what changed, why it changed, and what it might mean for the stock.</div></div></div>
+  </div>
+</div>
+</section>
+
+<!-- USE CASES -->
+<section>
+<div class="container">
+  <div class="section-tag">// Applications</div>
+  <h2>Built For</h2>
+  <p class="section-sub">From equity research desks to quantitative pipelines.</p>
+  <div class="use-grid">
+    <div class="use-card"><div class="use-icon">📈</div><div class="use-title">Equity Research</div><div class="use-body">Pre-earnings forensic check. Detect risk narrative shifts before consensus catches them.</div></div>
+    <div class="use-card"><div class="use-icon">⚡</div><div class="use-title">Quant Pipelines</div><div class="use-body">Alternative data input. Text-derived risk signals as features in factor models.</div></div>
+    <div class="use-card"><div class="use-icon">🏛️</div><div class="use-title">Compliance Teams</div><div class="use-body">Track regulatory exposure evolution across a portfolio over fiscal years.</div></div>
+    <div class="use-card"><div class="use-icon">🎓</div><div class="use-title">Academic Research</div><div class="use-body">Study the relationship between risk factor language and future market outcomes.</div></div>
+  </div>
+</div>
+</section>
+
+<!-- TECH STACK -->
+<section id="stack" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+<div class="container">
+  <div class="section-tag">// Stack</div>
+  <h2>Tech Stack</h2>
+  <p class="section-sub">Python-native, EDGAR-native, LLM-augmented.</p>
+  <div class="tech-grid">
+    <div class="tech-pill">Python 3.10+</div>
+    <div class="tech-pill">edgartools</div>
+    <div class="tech-pill">pandas / numpy</div>
+    <div class="tech-pill">OpenAI GPT-4o</div>
+    <div class="tech-pill">Streamlit</div>
+    <div class="tech-pill">SEC EDGAR</div>
+    <div class="tech-pill">XBRL Financials</div>
+    <div class="tech-pill">yfinance</div>
+    <div class="tech-pill">Streamlit Cloud</div>
+  </div>
+</div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="deploy">
+  <div class="section-tag">// Get Started</div>
+  <h2>Run it in <span style="color:var(--accent);">60 seconds.</span></h2>
+  <p>Clone the repo, add your OpenAI key, run Streamlit. That's it.</p>
+  <div class="hero-actions">
+    <a class="btn-primary" href="https://your-demo-link.streamlit.app" target="_blank">🚀 Live Demo</a>
+    <a class="btn-ghost" href="https://github.com/yourusername/titan-sec-analyzer" target="_blank">⭐ Star on GitHub</a>
+  </div>
+  <div class="badge-row">
+    <span class="badge badge-blue">Open Source</span>
+    <span class="badge badge-green">Research Use</span>
+    <span class="badge badge-gray">Not Financial Advice</span>
+    <span class="badge badge-blue">SEC EDGAR Data</span>
+    <span class="badge badge-green">GPT-4o Powered</span>
+  </div>
+</section>
+
+<footer>
+  Built by <a href="https://linkedin.com/in/yourprofile" style="color:var(--accent);text-decoration:none;">Your Name</a> · 
+  <a href="https://github.com/yourusername/titan-sec-analyzer" style="color:var(--muted);text-decoration:none;">GitHub</a> · 
+  For research and educational purposes only.
+</footer>
+
+</body>
+</html>
