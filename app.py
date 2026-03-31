@@ -226,7 +226,8 @@ try:
         else:
             from services.risk_explainer import explain_risk_shift
 
-            ai_explanation = explain_risk_shift(summary, company.name)
+            company_label = company.name if company is not None else ticker
+            ai_explanation = explain_risk_shift(summary, company_label)
 
             st.subheader("🤖 AI Risk Interpretation")
             st.write(ai_explanation)
