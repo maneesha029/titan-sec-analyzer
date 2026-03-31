@@ -88,6 +88,13 @@ company = st.session_state.company
 filing = st.session_state.filing
 revenue_data = st.session_state.revenue_data
 
+
+def _extract_year(value):
+    text = str(value)
+    if len(text) >= 4 and text[:4].isdigit():
+        return int(text[:4])
+    return None
+
 # ================================
 # COMPANY & FINANCIAL DISPLAY
 # ================================
@@ -139,6 +146,14 @@ try:
 
     if risk_ts is not None and not risk_ts.empty:
         st.caption("Item 1A risk signals extracted across annual filings (10-K)")
+
+        latest_local_year = int(risk_ts["year"].max())
+        live_filing_year = _extract_year(getattr(filing, "filing_date", "")) if filing else None
+        if live_filing_year is not None and live_filing_year > latest_local_year:
+            st.info(
+                f"Live EDGAR filing is from {live_filing_year}, but local multi-year risk history currently goes through {latest_local_year}. "
+                "Add newer filing text files under data/sec/<TICKER>/ to extend this chart."
+            )
 
         # -------------------------------
         # Multi-year Risk Line Chart
@@ -226,7 +241,7 @@ try:
         if summary is not None:
             st.markdown(
                 f"""
-                ### 🧠 Latest Risk Intelligence ({summary['year']})
+                ### 🧠 Latest Risk Intelligence (Local Coverage: {summary['year']})
 
                 • **Dominant Risk Driver:** {summary['dominant_risk']}  
                 • **Direction:** {summary['direction']}  
