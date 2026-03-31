@@ -52,7 +52,7 @@ def analyze_risk_to_return(
     ss_tot = float(np.sum((y - np.mean(y)) ** 2))
     r_squared = 0.0 if ss_tot == 0 else float(1 - (ss_res / ss_tot))
 
-    predicts_drawdown = slope < 0 and corr < 0
+    predicts_drawdown = bool(slope < 0 and corr < 0)
 
     return {
         "observations": int(len(dataset)),

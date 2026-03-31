@@ -8,7 +8,7 @@ def get_forward_returns(ticker, years, horizon_months=6):
     """
     stock = yf.Ticker(ticker)
     prices = stock.history(period="max")["Close"]
-    prices.index = pd.to_datetime(prices.index)
+    prices.index = pd.to_datetime(prices.index).tz_localize(None)
 
     returns = {}
 
