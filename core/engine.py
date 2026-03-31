@@ -59,10 +59,14 @@ def extract_risk_factors(filing):
     except Exception as e:
         return f"Error extracting risks: {str(e)}"
     
-from sec_edgar_downloader import Downloader
 import os
 
 def download_10k_filings(ticker, years):
+    try:
+        from sec_edgar_downloader import Downloader
+    except ImportError:
+        return
+
     dl = Downloader("YourName", "your@email.com")
     base_dir = f"data/filings/{ticker}"
     os.makedirs(base_dir, exist_ok=True)
