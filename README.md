@@ -1,4 +1,4 @@
-﻿<div align="center">
+﻿<!-- <div align="center">
 
 <img src="https://img.shields.io/badge/Python-3.10+-3b82f6?style=for-the-badge&logo=python&logoColor=white"/>
 <img src="https://img.shields.io/badge/Streamlit-Live%20Demo-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white"/>
@@ -10,7 +10,7 @@
 
 ### Autonomous AI that reads 10-K filings, quantifies risk, and explains what changed — across years, sectors, and market cycles.
 
-[**🚀 Live Demo**](https://your-demo-link.streamlit.app) • [**📊 Sample Report**](docs/sample-report.pdf) • [**📖 Docs**](docs/) • [**🐦 Follow**](https://linkedin.com/in/yourprofile)
+[**🚀 Live Demo**](https://your-demo-link.streamlit.app) • [**📊 Sample Report**](docs/sample-report.pdf) • [**📖 Docs**](docs/) 
 
 ---
 
@@ -205,4 +205,4 @@ This project is for research and educational purposes only. Not financial advice
 
 If this was useful, ⭐ the repo and [connect on LinkedIn](https://www.linkedin.com/in/maneesha-g-6b29ba353).
 
-</div>
+</div> -->
