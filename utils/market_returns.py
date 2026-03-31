@@ -7,7 +7,20 @@ def get_forward_returns(ticker, years, horizon_months=6):
     Returns a DataFrame with columns: year, forward_return (%)
     """
     stock = yf.Ticker(ticker)
-    prices = stock.history(period="max")["Close"]
+    try:
+        prices = stock.history(period="max")["Close"]
+    except Exception:
+        return pd.DataFrame(
+            [(year, None) for year in years],
+            columns=["year", "forward_return"],
+        )
+
+    if prices is None or len(prices) == 0:
+        return pd.DataFrame(
+            [(year, None) for year in years],
+            columns=["year", "forward_return"],
+        )
+
     prices.index = pd.to_datetime(prices.index).tz_localize(None)
 
     returns = {}

@@ -177,26 +177,29 @@ try:
         # -------------------------------
         from utils.market_returns import get_forward_returns
 
-        returns_df = get_forward_returns(
-            ticker,
-            risk_ts["year"].tolist()
-        )
+        try:
+            returns_df = get_forward_returns(
+                ticker,
+                risk_ts["year"].tolist()
+            )
 
-        risk_ts_with_returns = risk_ts.merge(
-            returns_df,
-            on="year",
-            how="left"
-        )
+            risk_ts_with_returns = risk_ts.merge(
+                returns_df,
+                on="year",
+                how="left"
+            )
 
-        st.subheader("📈 Risk vs Forward 6-Month Returns")
-        st.dataframe(risk_ts_with_returns, use_container_width=True)
+            st.subheader("📈 Risk vs Forward 6-Month Returns")
+            st.dataframe(risk_ts_with_returns, use_container_width=True)
 
-        st.subheader("Risk Signal vs Market Reaction")
-        st.line_chart(
-            risk_ts_with_returns.set_index("year")[
-                ["uncertainty_score", "forward_return"]
-            ]
-        )
+            st.subheader("Risk Signal vs Market Reaction")
+            st.line_chart(
+                risk_ts_with_returns.set_index("year")[
+                    ["uncertainty_score", "forward_return"]
+                ]
+            )
+        except Exception as market_error:
+            st.warning(f"Market-return overlay temporarily unavailable: {market_error}")
 
         # -------------------------------
         # Latest Risk Summary
