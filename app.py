@@ -5,6 +5,9 @@ import sys, os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import streamlit as st
+from dotenv import load_dotenv
+
+load_dotenv()
 st.markdown("""
 <style>
 body {
@@ -43,6 +46,11 @@ st.set_page_config(
 from core.engine import fetch_company_data, get_financial_trends, extract_risk_factors
 from services.risk_pipeline import run_risk_pipeline
 
+
+def has_openai_key() -> bool:
+    key = os.getenv("OPENAI_API_KEY", "").strip()
+    return bool(key and key != "your_openai_key_here")
+
 # ================================
 # SESSION STATE INITIALIZATION
 # ================================
@@ -59,6 +67,11 @@ if "revenue_data" not in st.session_state:
 ticker = st.sidebar.text_input(
     "Enter Ticker (e.g., NVDA, TSLA, AAPL)", value="NVDA"
 ).upper()
+
+if has_openai_key():
+    st.sidebar.success("AI mode: OpenAI enabled")
+else:
+    st.sidebar.warning("AI mode: fallback (set OPENAI_API_KEY in .env)")
 
 # ================================
 # BUTTON: FETCH DATA
