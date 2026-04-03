@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from services.alerts import build_regime_shift_alert, send_email_alert, send_slack_alert
@@ -11,6 +12,15 @@ from utils.risk_shift import build_risk_timeseries
 
 
 app = FastAPI(title="Titan SEC Analyzer API", version="0.1.0")
+
+# Enable CORS for frontend access
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, restrict to your domain
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class BenchmarkRequest(BaseModel):

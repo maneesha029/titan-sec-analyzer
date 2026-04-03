@@ -1,18 +1,30 @@
 # ================================
-# Titan SEC Analyzer 2026
+# Titan SEC Analyzer 2026 - ENHANCED
 # ================================
 import sys, os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import streamlit as st
+import pandas as pd
+import plotly.express as px
+import time
 from dotenv import load_dotenv
+import yfinance as yf
 
 load_dotenv()
+
+# Page config MUST be first Streamlit command
+st.set_page_config(
+    page_title="Titan SEC Analyzer",
+    page_icon="◆",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Custom CSS
 st.markdown("""
 <style>
-body {
-    background-color: #0e1117;
-}
+body { background-color: #0F2F51; }
 .metric-container {
     background-color: #161b22;
     padding: 20px;
@@ -27,33 +39,21 @@ body {
 </style>
 """, unsafe_allow_html=True)
 
-
+from core.engine import fetch_company_data, get_financial_trends
+from services.risk_pipeline import run_risk_pipeline
 from utils.risk_shift import (
     build_risk_timeseries,
     compute_risk_shift,
     compute_risk_percent_change,
     summarize_latest_shift
 )
-
-st.set_page_config(
-    
-    page_title="Titan SEC Analyzer",
-    page_icon="🔱",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-from core.engine import fetch_company_data, get_financial_trends, extract_risk_factors
-from services.risk_pipeline import run_risk_pipeline
-
+from services.risk_explainer import explain_risk_shift
 
 def has_openai_key() -> bool:
     key = os.getenv("OPENAI_API_KEY", "").strip()
     return bool(key and key != "your_openai_key_here")
 
-# ================================
-# SESSION STATE INITIALIZATION
-# ================================
+# Session state
 if "company" not in st.session_state:
     st.session_state.company = None
 if "filing" not in st.session_state:
@@ -62,197 +62,139 @@ if "revenue_data" not in st.session_state:
     st.session_state.revenue_data = None
 
 # ================================
-# SIDEBAR INPUT
+# SIDEBAR
 # ================================
-ticker = st.sidebar.text_input(
-    "Enter Ticker (e.g., NVDA, TSLA, AAPL)", value="NVDA"
-).upper()
+st.sidebar.title("Titan SEC Analyzer")
+st.sidebar.markdown("---")
+
+DEFAULT_TICKERS = ["NVDA", "AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "AMD", "INTC"]
+
+ticker = st.sidebar.selectbox(
+    "Select Company",
+    DEFAULT_TICKERS,
+    index=DEFAULT_TICKERS.index("NVDA")
+)
+
+custom_ticker = st.sidebar.text_input("Or custom ticker", "").upper()
+if custom_ticker:
+    ticker = custom_ticker
 
 if has_openai_key():
-    st.sidebar.success("AI mode: OpenAI enabled")
+    st.sidebar.success("🤖 AI Mode: Enabled")
 else:
-    st.sidebar.warning("AI mode: fallback (set OPENAI_API_KEY in .env)")
+    st.sidebar.warning("⚠️ AI Mode: Fallback (set OPENAI_API_KEY)")
 
 # ================================
-# BUTTON: FETCH DATA
+# MAIN BUTTON
 # ================================
-if st.sidebar.button("Run Intelligence Audit"):
-    with st.spinner(f"Accessing EDGAR Servers for {ticker}..."):
-        st.session_state.company, st.session_state.filing = fetch_company_data(ticker)
-        st.session_state.revenue_data = get_financial_trends(ticker)
+if st.sidebar.button("🚀 Run Intelligence Audit", type="primary", use_container_width=True):
+    progress_bar = st.progress(0)
+    status_text = st.empty()
+    
+    status_text.text("📡 Connecting to EDGAR...")
+    progress_bar.progress(25)
+    st.session_state.company, st.session_state.filing = fetch_company_data(ticker)
+    
+    status_text.text("💰 Fetching financial trends...")
+    progress_bar.progress(50)
+    st.session_state.revenue_data = get_financial_trends(ticker)
+    
+    status_text.text("🔍 Building risk signals...")
+    progress_bar.progress(75)
+    
+    status_text.text("✅ Complete!")
+    progress_bar.progress(100)
+    time.sleep(1)
+    progress_bar.empty()
+    status_text.empty()
+    st.success(f"✅ {ticker} analysis complete")
 
-# ================================
-# LOCAL VARIABLES
-# ================================
 company = st.session_state.company
 filing = st.session_state.filing
 revenue_data = st.session_state.revenue_data
 
-
-def _extract_year(value):
-    text = str(value)
-    if len(text) >= 4 and text[:4].isdigit():
-        return int(text[:4])
-    return None
-
 # ================================
-# COMPANY & FINANCIAL DISPLAY
+# COMPANY DISPLAY
 # ================================
 if company:
-    st.header(f"{company.name} Analysis")
-
+    st.header(f"🏢 {company.name}")
+    
     col1, col2, col3 = st.columns(3)
     col1.metric("CIK", company.cik)
-    col2.metric("Industry", company.industry)
-    col3.write(f"**Latest Filing:** {filing.filing_date}")
-
-    st.subheader("Revenue Performance (Live XBRL)")
+    col2.metric("Industry", company.industry if company.industry else "N/A")
+    col3.metric("Latest Filing", str(filing.filing_date) if filing else "N/A")
+    
     if revenue_data is not None and not revenue_data.empty:
-        st.dataframe(revenue_data)
-    else:
-        st.warning("Could not extract standardized financial data for this ticker.")
-else:
-    st.info("Run Intelligence Audit to load company data.")
+        with st.expander("📊 Financial Trends"):
+            st.dataframe(revenue_data, use_container_width=True)
 
 # ================================
-# RISK ANALYSIS SECTION (Item 1A)
+# RISK ANALYSIS
 # ================================
 if filing:
     result = run_risk_pipeline(filing)
-
-    with st.expander("📄 Raw Risk Factors"):
-        st.write(result["raw_text"])
-
-    st.subheader("📊 Quantified Risk Signals")
+    
+    with st.expander("📄 Raw Risk Factors (Item 1A)"):
+        st.text(result["raw_text"][:5000] + "..." if len(result["raw_text"]) > 5000 else result["raw_text"])
+    
+    st.subheader("📊 Current Risk Signals")
     c1, c2, c3 = st.columns(3)
-    c1.metric("Uncertainty Score", result["features"]["uncertainty_score"])
-    c2.metric("Regulatory Risk", result["features"]["regulatory_risk_score"])
-    c3.metric("Litigation Risk", result["features"]["litigation_risk_score"])
-else:
-    st.info("Run Intelligence Audit to analyze risk factors.")
-
-# ================================
-# MULTI-YEAR RISK SHIFT INTELLIGENCE
-# ================================
-st.markdown("---")
-st.subheader("📈 Multi-Year Risk Shift Intelligence")
-
-try:
-    # Build risk timeseries
-    risk_ts = build_risk_timeseries(
-        ticker=ticker,
-        filings_dir="data/sec"
-    )
-
-    if risk_ts is not None and not risk_ts.empty:
-        st.caption("Item 1A risk signals extracted across annual filings (10-K)")
-
-        latest_local_year = int(risk_ts["year"].max())
-        live_filing_year = _extract_year(getattr(filing, "filing_date", "")) if filing else None
-        if live_filing_year is not None and live_filing_year > latest_local_year:
-            st.info(
-                f"Live EDGAR filing is from {live_filing_year}, but local multi-year risk history currently goes through {latest_local_year}. "
-                "Add newer filing text files under data/sec/<TICKER>/ to extend this chart."
-            )
-
-        # -------------------------------
-        # Multi-year Risk Line Chart
-        # -------------------------------
-        st.line_chart(
-            risk_ts.set_index("year")[
-                ["uncertainty_score", "regulatory_risk", "litigation_risk"]
-            ]
-        )
-        # try:
-        #     texts = load_risk_texts("NVDA")
-        #     ts = build_risk_timeseries(texts)
-        #     shifts = compute_risk_shift(ts)
-        # except Exception as e:
-        #     st.error(f"Risk engine failed: {e}")
-        #     st.stop()
-
-
-        # -------------------------------
-        # Risk Shift Tables
-        # -------------------------------
-        shift_df = compute_risk_shift(risk_ts)
-        pct_df = compute_risk_percent_change(risk_ts)
-
-        col1, col2 = st.columns(2)
-        with col1:
-            st.write("**Absolute Year-over-Year Change**")
-            st.dataframe(shift_df, use_container_width=True)
-
-        with col2:
-            st.write("**Percentage Risk Change (%)**")
-            st.dataframe(pct_df.round(2), use_container_width=True)
-
-        # -------------------------------
-        # STEP 1: Risk vs Forward Returns
-        # -------------------------------
-        from utils.market_returns import get_forward_returns
-
-        try:
-            returns_df = get_forward_returns(
-                ticker,
-                risk_ts["year"].tolist()
-            )
-
-            risk_ts_with_returns = risk_ts.merge(
-                returns_df,
-                on="year",
-                how="left"
-            )
-
-            st.subheader("📈 Risk vs Forward 6-Month Returns")
-            st.dataframe(risk_ts_with_returns, use_container_width=True)
-
-            st.subheader("Risk Signal vs Market Reaction")
-            st.line_chart(
-                risk_ts_with_returns.set_index("year")[
-                    ["uncertainty_score", "forward_return"]
-                ]
-            )
-        except Exception as market_error:
-            st.warning(f"Market-return overlay temporarily unavailable: {market_error}")
-
-        # -------------------------------
-        # Latest Risk Summary
-        # -------------------------------
-        summary = summarize_latest_shift(risk_ts)
-
-        if summary is None:
-            st.warning("⚠️ Not enough multi-year filings to generate AI risk interpretation.")
-        else:
-            from services.risk_explainer import explain_risk_shift
-
-            company_label = company.name if company is not None else ticker
-            ai_explanation = explain_risk_shift(summary, company_label)
-
-            st.subheader("🤖 AI Risk Interpretation")
-            st.write(ai_explanation)
-        from utils.risk_explainer import (
-            build_risk_prompt,
-            generate_risk_explanation
-        )
-
+    c1.metric("🔮 Uncertainty", result["features"]["uncertainty_score"])
+    c2.metric("⚖️ Regulatory", result["features"]["regulatory_risk_score"])
+    c3.metric("⚔️ Litigation", result["features"]["litigation_risk_score"])
+    
+    # ================================
+    # MULTI-YEAR ANALYSIS
+    # ================================
+    st.markdown("---")
+    st.subheader("📈 Multi-Year Risk Evolution")
+    
+    try:
+        risk_ts = build_risk_timeseries(ticker=ticker, filings_dir="data/sec")
         
-
-
-        if summary is not None:
-            st.markdown(
-                f"""
-                ### 🧠 Latest Risk Intelligence (Local Coverage: {summary['year']})
-
-                • **Dominant Risk Driver:** {summary['dominant_risk']}  
-                • **Direction:** {summary['direction']}  
-                • **Net Risk Change:** {summary['net_change']:+.2f}
-                """
-            )
-
-
-    else:
-        st.warning("Insufficient historical filings for risk shift analysis.")
-
-except Exception as e:
-    st.error(f"Risk shift engine failed: {e}")
+        if risk_ts is not None and not risk_ts.empty:
+            # Year filter
+            min_y, max_y = int(risk_ts['year'].min()), int(risk_ts['year'].max())
+            yr_range = st.slider("Year Range", min_y, max_y, (min_y, max_y), key="year_slider")
+            risk_ts = risk_ts[(risk_ts['year'] >= yr_range[0]) & (risk_ts['year'] <= yr_range[1])]
+            
+            # Time series chart
+            st.line_chart(risk_ts.set_index("year")[["uncertainty_score", "regulatory_risk", "litigation_risk"]])
+            
+            # Radar chart
+            if len(risk_ts) >= 2:
+                latest = risk_ts.iloc[-1]
+                avg = risk_ts.iloc[:-1].mean()
+                radar_df = pd.DataFrame({
+                    'Risk': ['Uncertainty', 'Regulatory', 'Litigation'],
+                    'Current': [latest['uncertainty_score'], latest['regulatory_risk'], latest['litigation_risk']],
+                    'Historical Avg': [avg['uncertainty_score'], avg['regulatory_risk'], avg['litigation_risk']]
+                })
+                fig = px.line_polar(radar_df, r='Current', theta='Risk', line_close=True, 
+                                    title=f"{ticker} Risk Profile vs Historical")
+                st.plotly_chart(fig, use_container_width=True)
+            
+            # Shift tables
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.write("**YoY Absolute Change**")
+                st.dataframe(compute_risk_shift(risk_ts), use_container_width=True)
+            with col_b:
+                st.write("**YoY % Change**")
+                st.dataframe(compute_risk_percent_change(risk_ts).round(2), use_container_width=True)
+            
+            # Download
+            csv = risk_ts.to_csv(index=False)
+            st.download_button("📥 Download Risk Data", csv, f"{ticker}_risk.csv", "text/csv")
+            
+            # AI Summary
+            summary = summarize_latest_shift(risk_ts)
+            if summary:
+                st.subheader("🤖 AI Risk Interpretation")
+                explanation = explain_risk_shift(summary, company.name if company else ticker)
+                st.info(explanation)
+                
+    except Exception as e:
+        st.error(f"Risk analysis error: {e}")
+else:
+    st.info("👈 Select a ticker and click 'Run Intelligence Audit' to begin")
