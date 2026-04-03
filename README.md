@@ -71,22 +71,6 @@ Local filing text is stored in this format:
 data/sec/<TICKER>/<YEAR>.txt
 ```
 
-## Screenshots
-
-### Dashboard Overview
-
-![Titan SEC Analyzer dashboard](assets/screenshots/dashboard-overview.png)
-
-### Multi-Year Risk Evolution
-
-![Titan SEC Analyzer risk chart](assets/screenshots/multi-year-risk-evolution.png)
-
-### AI Risk Interpretation
-
-![Titan SEC Analyzer AI interpretation](assets/screenshots/ai-risk-interpretation.png)
-
-If you have not added the image files yet, place them in `assets/screenshots/` using the file names above.
-
 ## Troubleshooting
 
 | Issue | Solution |
