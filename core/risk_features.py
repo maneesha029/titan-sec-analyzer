@@ -1,6 +1,8 @@
 import re
 from collections import Counter
 
+from utils.risk_shift import score_with_negation
+
 UNCERTAINTY_WORDS = [
     "may", "might", "could", "potentially", "uncertain", "adverse"
 ]
@@ -23,8 +25,7 @@ SUPPLY_CHAIN_WORDS = [
 
 
 def _count_keywords(text, keywords):
-    text = text.lower()
-    return sum(text.count(word) for word in keywords)
+    return score_with_negation(text, keywords)
 
 
 def extract_risk_features(risk_text: str) -> dict:

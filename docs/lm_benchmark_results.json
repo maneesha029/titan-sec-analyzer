@@ -1,0 +1,108 @@
+{
+  "combined": {
+    "uncertainty_vs_lm_uncertainty": {
+      "r": -0.393,
+      "p": 0.032,
+      "n": 30
+    },
+    "litigation_vs_lm_litigious": {
+      "r": 0.297,
+      "p": 0.111,
+      "n": 30
+    },
+    "uncertainty_vs_lm_negative": {
+      "r": 0.657,
+      "p": 0.0,
+      "n": 30
+    },
+    "observations": 30
+  },
+  "per_ticker": {
+    "AAPL": {
+      "uncertainty_vs_lm_uncertainty": {
+        "r": 0.889,
+        "p": 0.018,
+        "n": 6
+      },
+      "litigation_vs_lm_litigious": {
+        "r": 0.833,
+        "p": 0.04,
+        "n": 6
+      },
+      "uncertainty_vs_lm_negative": {
+        "r": -0.655,
+        "p": 0.158,
+        "n": 6
+      },
+      "observations": 6
+    },
+    "MSFT": {
+      "uncertainty_vs_lm_uncertainty": {
+        "r": -1.0,
+        "p": 0.0,
+        "n": 6
+      },
+      "litigation_vs_lm_litigious": {
+        "r": 0.996,
+        "p": 0.0,
+        "n": 6
+      },
+      "uncertainty_vs_lm_negative": {
+        "r": 0.999,
+        "p": 0.0,
+        "n": 6
+      },
+      "observations": 6
+    },
+    "GOOG": {
+      "uncertainty_vs_lm_uncertainty": {
+        "r": -0.947,
+        "p": 0.004,
+        "n": 6
+      },
+      "litigation_vs_lm_litigious": {
+        "r": -0.942,
+        "p": 0.005,
+        "n": 6
+      },
+      "uncertainty_vs_lm_negative": {
+        "r": -0.944,
+        "p": 0.005,
+        "n": 6
+      },
+      "observations": 6
+    },
+    "JPM": {
+      "uncertainty_vs_lm_uncertainty": {
+        "r": 0.32,
+        "p": 0.536,
+        "n": 6
+      },
+      "litigation_vs_lm_litigious": {
+        "r": -0.99,
+        "p": 0.0,
+        "n": 6
+      },
+      "uncertainty_vs_lm_negative": {
+        "r": 0.233,
+        "p": 0.657,
+        "n": 6
+      },
+      "observations": 6
+    },
+    "XOM": {
+      "uncertainty_vs_lm_uncertainty": {
+        "r": -0.096,
+        "p": 0.857,
+        "n": 6
+      },
+      "litigation_vs_lm_litigious": null,
+      "uncertainty_vs_lm_negative": {
+        "r": 0.913,
+        "p": 0.011,
+        "n": 6
+      },
+      "observations": 6
+    }
+  }
+}
